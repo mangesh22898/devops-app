@@ -1,26 +1,29 @@
-# Copyright The OpenTelemetry Authors
-# SPDX-License-Identifier: Apache-2.0
-
-
+# Use Golang 1.22 Alpine as the builder
 FROM golang:1.22-alpine AS builder
 
 WORKDIR /usr/src/app/
 
-RUN --mount=type=cache,target=/go/pkg/mod/ \
-    --mount=type=bind,source=./src/checkout/go.sum,target=go.sum \
-    --mount=type=bind,source=./src/checkout/go.mod,target=go.mod \
-    go mod download
+# Copy go.mod and go.sum before running go mod download
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN --mount=type=cache,target=/go/pkg/mod/ \
-    --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=bind,rw,source=./src/checkout,target=. \
-    go build -ldflags "-s -w" -o /go/bin/checkout/ ./
+# Copy the rest of the source code
+COPY . .
 
+# Build the checkout service
+RUN go build -ldflags "-s -w" -o /go/bin/checkout .
+
+# Use a lightweight Alpine image for final container
 FROM alpine
 
 WORKDIR /usr/src/app/
 
-COPY --from=builder /go/bin/checkout/ ./
+# Copy the built binary from the builder stage
+COPY --from=builder /go/bin/checkout .
 
-EXPOSE ${CHECKOUT_PORT}
-ENTRYPOINT [ "./checkout" ]
+# Set the port for the service
+EXPOSE 8080
+
+# Run the checkout service
+ENTRYPOINT ["./checkout"]
+
