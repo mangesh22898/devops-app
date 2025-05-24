@@ -1,0 +1,76 @@
+name: frontend-proxy-ci
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/frontend-proxy/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install build tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+
+    - name: Build C++ service (if applicable)
+      run: |
+        cd src/frontend-proxy
+        # Optional: mkdir build && cd build && cmake .. && make
+        echo "Assuming Dockerfile handles compilation."
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./src/frontend-proxy
+        file: ./src/frontend-proxy/Dockerfile
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/frontend-proxy:${{ github.run_id }}
+
+  updatek8s:
+    runs-on: ubuntu-latest
+    needs: docker
+
+    steps:
+    - name: Checkout k8s-manifests repo
+      uses: actions/checkout@v4
+      with:
+        repository: mangesh22898/k8s-manifests
+        token: ${{ secrets.MANIFEST_REPO_TOKEN }}
+        path: manifests
+
+    - name: Update image tag
+      run: |
+        sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/frontend-proxy:${{ github.run_id }}|" manifests/frontend-proxy/deployment.yaml
+
+    - name: Commit and push changes
+      run: |
+        cd manifests
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git commit -am "[CI]: Update frontend-proxy image tag"
+        git push origin main
