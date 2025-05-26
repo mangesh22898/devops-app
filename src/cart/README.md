@@ -2,7 +2,7 @@
 
 This service stores user shopping carts in Valkey.
 
-## Local Build
+## Local Build check
 
 Run `dotnet restore` and `dotnet build`.
 
