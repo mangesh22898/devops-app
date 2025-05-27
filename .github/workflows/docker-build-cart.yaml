@@ -47,7 +47,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./src/cart
-        file: ./src/cartsrc/src/Dockerfile
+        file: ./src/cart/src/Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/cart-service:${{ github.run_id }}
 
