@@ -1,4 +1,4 @@
-# Cart Service
+## Cart Service
 
 This service stores user shopping carts in Valkey.
 
