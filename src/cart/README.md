@@ -6,7 +6,7 @@ This service stores user shopping carts in Valkey.
 
 Run `dotnet restore` and `dotnet build`.
 
-## Docker Build
+## Docker Build now
 
 From the root directory of this repository, run:
 
