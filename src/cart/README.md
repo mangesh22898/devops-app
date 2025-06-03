@@ -13,3 +13,5 @@ From the root directory of this repository, run:
 ```sh
 docker compose build cart
 ```
+
+Some commad added 
