@@ -7,11 +7,6 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <PublishTrimmed>false</PublishTrimmed>
-    <ProtosDir>$(ProjectDir)..\pb</ProtosDir>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="!Exists('$(ProtosDir)')">
-    <ProtosDir>..\..\..\pb</ProtosDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,9 +26,19 @@
     <PackageReference Include="OpenFeature.Contrib.Providers.Flagd" Version="0.3.0" />
     <PackageReference Include="OpenFeature.Contrib.Hooks.Otel" Version="0.2.0" />
     <PackageReference Include="OpenFeature" Version="2.2.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.25.3" />
+    <PackageReference Include="Grpc.Tools" Version="2.57.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- ✅ Only one correct proto path -->
+  <ItemGroup>
+    <Protobuf Include="../../../pb/demo.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
-	  <Protobuf Include="$(ProtosDir)/**/*.proto" GrpcServices="Both" />
+    <Compile Remove="**/tests/**/*.cs" />
   </ItemGroup>
+
 </Project>

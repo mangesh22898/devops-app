@@ -1,40 +1,39 @@
-# Copyright The OpenTelemetry Authors
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2021 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
+# ---------------------------------------------------------------
+# Build Stage
+# ---------------------------------------------------------------
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
 ARG TARGETARCH
 
+# Set working directory
 WORKDIR /usr/src/app/
 
-COPY ./src/ ./
-COPY ./pb/ ./pb/
+# Copy everything needed to restore and build
+COPY . .
 
-RUN dotnet restore ./cart.csproj -r linux-musl-$TARGETARCH
-RUN dotnet publish ./cart.csproj -r linux-musl-$TARGETARCH --no-restore -o /cart
+# Restore using the solution to bring in all project references
+RUN dotnet restore ./cart.sln -r linux-musl-$TARGETARCH
 
-# -----------------------------------------------------------------------------
+# Publish the main app project
+RUN dotnet publish ./src/cart/cart.csproj -r linux-musl-$TARGETARCH \
+    --no-restore -c Release -o /cart
 
-# https://mcr.microsoft.com/v2/dotnet/runtime-deps/tags/list
+# ---------------------------------------------------------------
+# Runtime Stage
+# ---------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-alpine3.20
 
+# Set working directory
 WORKDIR /usr/src/app/
+
+# Copy published app from builder stage
 COPY --from=builder /cart/ ./
 
+# Set environment
 ENV DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
 
+# Expose port (optional: update to actual port used by your app)
 EXPOSE ${CART_PORT}
+
+# Run the app
 ENTRYPOINT [ "./cart" ]
+
