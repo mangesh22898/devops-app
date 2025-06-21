@@ -26,16 +26,16 @@
     <PackageReference Include="OpenFeature.Contrib.Providers.Flagd" Version="0.3.0" />
     <PackageReference Include="OpenFeature.Contrib.Hooks.Otel" Version="0.2.0" />
     <PackageReference Include="OpenFeature" Version="2.2.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.25.3" />
-    <PackageReference Include="Grpc.Tools" Version="2.57.0">
+    <PackageReference Include="Google.Protobuf" Version="3.27.3" />
+    <PackageReference Include="Grpc.Tools" Version="2.67.0">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 
-  <!-- ✅ Only one correct proto path -->
-  <ItemGroup>
-    <Protobuf Include="../../../pb/demo.proto" GrpcServices="Server" />
-  </ItemGroup>
+  <!-- ✅ Only keep the correct proto reference -->
+<ItemGroup>
+  <Protobuf Include="../../pb/demo.proto" GrpcServices="Both" />
+</ItemGroup>
 
   <ItemGroup>
     <Compile Remove="**/tests/**/*.cs" />
